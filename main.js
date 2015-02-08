@@ -32,6 +32,7 @@ function fakeDemo()
 
 var functionConstraints =
 {
+	
 }
 
 var mockFileLibrary = 
@@ -69,7 +70,9 @@ function generateTestCases()
 
 		// update parameter values based on known constraints.
 		var constraints = functionConstraints[funcName].constraints;
-		// Handle global constraints...
+		// Handle global constraints..
+		// console.log(constraints);
+		
 		var fileWithContent = _.some(constraints, {mocking: 'fileWithContent' });
 		var pathExists      = _.some(constraints, {mocking: 'fileExists' });
 
@@ -83,7 +86,9 @@ function generateTestCases()
 		}
 
 		// Prepare function arguments.
+
 		var args = Object.keys(params).map( function(k) {return params[k]; }).join(",");
+		console.log(constraints);
 		if( pathExists || fileWithContent )
 		{
 			content += generateMockFsTestCases(pathExists,fileWithContent,funcName, args);
@@ -92,11 +97,23 @@ function generateTestCases()
 			content += generateMockFsTestCases(pathExists,!fileWithContent,funcName, args);
 			content += generateMockFsTestCases(!pathExists,fileWithContent,funcName, args);
 		}
+		else if(_.some(constraints,{value:'undefined'})){
+			content += "subject.{0}({1});\n".format(funcName, args);
+			content += "subject.{0}({1});\n".format(funcName, "'5','-5'");
+			
+		}
+		else if(_.some(constraints,{value:'0'})){
+			console.log("Afdaf");
+			content += "subject.{0}({1});\n".format(funcName, "'-5','-5'");
+			content += "subject.{0}({1});\n".format(funcName, "'5','-5'");
+		}
 		else
 		{
 			// Emit simple test case.
 			content += "subject.{0}({1});\n".format(funcName, args );
+			
 		}
+		
 
 	}
 
@@ -140,6 +157,8 @@ function constraints(filePath)
 		if (node.type === 'FunctionDeclaration') 
 		{
 			var funcName = functionName(node);
+			console.log();
+			console.log();console.log();console.log();
 			console.log("Line : {0} Function: {1}".format(node.loc.start.line, funcName ));
 
 			var params = node.params.map(function(p) {return p.name});
@@ -157,6 +176,22 @@ function constraints(filePath)
 						//var expression = buf.substring(child.range[0], child.range[1]);
 						var rightHand = buf.substring(child.right.range[0], child.right.range[1])
 						functionConstraints[funcName].constraints.push( 
+							{
+								ident: child.left.name,
+								value: rightHand
+							}
+						);
+						// console.log(functionConstraints[funcName].constraints);
+					}
+				}
+				if( child.type === 'BinaryExpression' && child.operator == "<")
+				{
+					if( child.left.type == 'Identifier' && params.indexOf( child.left.name ) > -1)
+					{
+						// get expression from original source code:
+						//var expression = buf.substring(child.range[0], child.range[1]);
+						var rightHand = buf.substring(child.right.range[0], child.right.range[1])
+						functionConstraints[funcName].constraints.push(
 							{
 								ident: child.left.name,
 								value: rightHand
