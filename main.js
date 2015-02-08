@@ -97,16 +97,16 @@ function generateTestCases()
 			content += generateMockFsTestCases(pathExists,!fileWithContent,funcName, args);
 			content += generateMockFsTestCases(!pathExists,fileWithContent,funcName, args);
 		}
-		else if(_.some(constraints,{value:'undefined'})){
+		else if(_.some(constraints,{ident: 'q',value:'undefined'})){
 			content += "subject.{0}({1});\n".format(funcName, args);
 			content += "subject.{0}({1});\n".format(funcName, "'5','-5'");
+			content += "subject.{0}({1});\n".format(funcName, "'-5','-5'");
 			
 		}
-		else if(_.some(constraints,{value:'0'})){
-			console.log("Afdaf");
-			content += "subject.{0}({1});\n".format(funcName, "'-5','-5'");
-			content += "subject.{0}({1});\n".format(funcName, "'5','-5'");
-		}
+		// else if(_.some(constraints,{ident: 'p',value:'0'})){
+		//
+		// 	content += "subject.{0}({1});\n".format(funcName, "'5','-5'");
+		// }
 		else
 		{
 			// Emit simple test case.
