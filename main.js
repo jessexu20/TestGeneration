@@ -129,15 +129,6 @@ function generateTestCases()
 			options['toString']=function(){return "{normalize:false}";};
 			content += "subject.{0}({1});\n".format(funcName, "'"+number+"','"+formatNumber+"',"+options);
 			content += "subject.{0}({1});\n".format(funcName, "'"+number+"','"+formatNumber+"',"+!options);
-			// content += "subject.{0}({1});\n".format(funcName, "'','',"+false);
-			// content += "subject.{0}({1});\n".format(funcName, "'"+number+"','',"+true);
-			// content += "subject.{0}({1});\n".format(funcName, "'','"+formatNumber+"',"+true);
-			// content += "subject.{0}({1});\n".format(funcName, "'"+number+"','"+formatNumber+"',"+true);
-			// content += "subject.{0}({1});\n".format(funcName, "'','',"+false);
-			// content += "subject.{0}({1});\n".format(funcName, "'"+number+"','',"+false);
-			// content += "subject.{0}({1});\n".format(funcName, "'','"+formatNumber+"',"+false);
-			// content += "subject.{0}({1});\n".format(funcName, "'"+number+"','"+formatNumber+"',"+false);
-			
 		}
 		else if(!region){
 			var number=faker.phone.phoneNumberFormat();
@@ -234,19 +225,17 @@ function constraints(filePath)
 				}
 				if( child.type === 'BinaryExpression' && child.operator == "==")
 				{
-					// console.log(child);
-					if( child.left.type == 'Identifier')
+					if( child.left.type == 'Identifier' && child.left.name=="area")
 					{
 						// get expression from original source code:
 						//var expression = buf.substring(child.range[0], child.range[1]);
 						var rightHand = buf.substring(child.right.range[0], child.right.range[1])
-						functionConstraints[funcName].constraints.push( 
+						functionConstraints[funcName].constraints.push(
 							{
 								ident: child.left.name,
 								value: rightHand
 							}
 						);
-						// console.log(functionConstraints[funcName].constraints);
 					}
 				}
 				if( child.type === 'BinaryExpression' && child.operator == "<")
@@ -274,7 +263,6 @@ function constraints(filePath)
 							{
 								ident: child.left.object.name,
 								value: rightHand
-								// mocking: 'fileWithContent'
 							});
 					}
 				}
@@ -330,6 +318,22 @@ function constraints(filePath)
 								value: false,
 							}
 						) 
+					}
+					if(child.right.type=='UnaryExpression'){
+						if(child.right.argument.type=='MemberExpression'){
+							functionConstraints[funcName].constraints.push(
+								{
+									ident: child.right.argument.object.name+'.'+child.right.argument.property.name,
+									value: false,
+								}
+							) 
+							functionConstraints[funcName].constraints.push(
+								{
+									ident: child.right.argument.object.name+'.'+child.right.argument.property.name,
+									value: true,
+								}
+							) 
+						}
 					}
 				}
 			});
