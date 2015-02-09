@@ -16,7 +16,7 @@ Lines        : 100% ( 63/63 )
     open coverage/lcov-report/TestGeneration/subject.js.html
 #### You will see
 
-	<img src="testResult.png"/>
+<img src="testResult.png"/>
 
 
 ### Test Generation in Java
