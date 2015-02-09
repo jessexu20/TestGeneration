@@ -119,16 +119,24 @@ function generateTestCases()
 		else if(trueStat || falseStat){
 			var number=faker.phone.phoneNumberFormat();
 			var formatNumber=faker.phone.phoneFormats();
+
 			content += "subject.{0}({1});\n".format(funcName, args );
-			content += "subject.{0}({1});\n".format(funcName, "'','',"+true);
-			content += "subject.{0}({1});\n".format(funcName, "'','',"+false);
-			content += "subject.{0}({1});\n".format(funcName, "'"+number+"','',"+true);
-			content += "subject.{0}({1});\n".format(funcName, "'','"+formatNumber+"',"+true);
-			content += "subject.{0}({1});\n".format(funcName, "'"+number+"','"+formatNumber+"',"+true);
-			content += "subject.{0}({1});\n".format(funcName, "'','',"+false);
-			content += "subject.{0}({1});\n".format(funcName, "'"+number+"','',"+false);
-			content += "subject.{0}({1});\n".format(funcName, "'','"+formatNumber+"',"+false);
-			content += "subject.{0}({1});\n".format(funcName, "'"+number+"','"+formatNumber+"',"+false);
+			//generate subject.format('587-444-5077','1-###-###-####',{normalize:true});
+			var options={
+				toString:function(){return "{normalize:true}";},
+			}
+			content += "subject.{0}({1});\n".format(funcName, "'"+number+"','"+formatNumber+"',"+options);
+			options['toString']=function(){return "{normalize:false}";};
+			content += "subject.{0}({1});\n".format(funcName, "'"+number+"','"+formatNumber+"',"+options);
+			content += "subject.{0}({1});\n".format(funcName, "'"+number+"','"+formatNumber+"',"+!options);
+			// content += "subject.{0}({1});\n".format(funcName, "'','',"+false);
+			// content += "subject.{0}({1});\n".format(funcName, "'"+number+"','',"+true);
+			// content += "subject.{0}({1});\n".format(funcName, "'','"+formatNumber+"',"+true);
+			// content += "subject.{0}({1});\n".format(funcName, "'"+number+"','"+formatNumber+"',"+true);
+			// content += "subject.{0}({1});\n".format(funcName, "'','',"+false);
+			// content += "subject.{0}({1});\n".format(funcName, "'"+number+"','',"+false);
+			// content += "subject.{0}({1});\n".format(funcName, "'','"+formatNumber+"',"+false);
+			// content += "subject.{0}({1});\n".format(funcName, "'"+number+"','"+formatNumber+"',"+false);
 			
 		}
 		else if(!region){
