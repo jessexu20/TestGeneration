@@ -82,7 +82,11 @@ function generateTestCases()
 		var fileWithContent = _.some(constraints, {mocking: 'fileWithContent' });
 		var pathExists      = _.some(constraints, {mocking: 'fileExists' });
 		var zero2= _.some(constraints,{value:'0'});
-		
+		//Test4
+		var trueStat = _.some(constraints,{value:true});
+		var falseStat = _.some(constraints,{value:false});
+		//Test5
+		var region= _.some(constraints,{value:'202'});
 		for( var c = 0; c < constraints.length; c++ )
 		{
 			var constraint = constraints[c];
@@ -112,6 +116,26 @@ function generateTestCases()
 			content += "subject.{0}({1});\n".format(funcName, "'1','1'");
 			content += "subject.{0}({1});\n".format(funcName, "'1','0'");
 		}
+		else if(trueStat || falseStat){
+			var number=faker.phone.phoneNumberFormat();
+			var formatNumber=faker.phone.phoneFormats();
+			content += "subject.{0}({1});\n".format(funcName, args );
+			content += "subject.{0}({1});\n".format(funcName, "'','',"+true);
+			content += "subject.{0}({1});\n".format(funcName, "'','',"+false);
+			content += "subject.{0}({1});\n".format(funcName, "'"+number+"','',"+true);
+			content += "subject.{0}({1});\n".format(funcName, "'','"+formatNumber+"',"+true);
+			content += "subject.{0}({1});\n".format(funcName, "'"+number+"','"+formatNumber+"',"+true);
+			content += "subject.{0}({1});\n".format(funcName, "'','',"+false);
+			content += "subject.{0}({1});\n".format(funcName, "'"+number+"','',"+false);
+			content += "subject.{0}({1});\n".format(funcName, "'','"+formatNumber+"',"+false);
+			content += "subject.{0}({1});\n".format(funcName, "'"+number+"','"+formatNumber+"',"+false);
+			
+		}
+		else if(!region){
+			var number=faker.phone.phoneNumberFormat();
+			content+= "subject.{0}({1});\n".format(funcName, "'212-323-221'");
+			content+="subject.{0}({1});\n".format(funcName, "'"+number+"'");
+		}
 		else
 		{
 			// Emit simple test case.
@@ -139,12 +163,6 @@ function generateMockFsTestCases (pathExists,fileWithContent,zero2,funcName,args
 	if( fileWithContent )
 	{
 		for (var attrname in mockFileLibrary.fileWithContent) { mergedFS[attrname] = mockFileLibrary.fileWithContent[attrname]; }
-		// if(zero2 && pathExists){
-		// 	for (var attrname in mockFileLibrary.fileWithContent) { mergedFS[attrname] = mockFileLibrary.fileWithContent[attrname]; }
-		// 	console.log("fdskjflkdasj");
-		// 	mergedFS['pathContent']['file1']={};
-		// 	console.log(mergedFS['pathContent']['file1']);
-		// }
 	}
 	// #####to generate this!!
 	// mock({"path/fileExists":{},"pathContent":{"file1":""}});
@@ -188,9 +206,28 @@ function constraints(filePath)
 			// Check for expressions using argument.
 			traverse(node, function(child)
 			{
+
+				
 				if( child.type === 'BinaryExpression' && child.operator == "==")
 				{
 					if( child.left.type == 'Identifier' && params.indexOf( child.left.name ) > -1)
+					{
+						// get expression from original source code:
+						//var expression = buf.substring(child.range[0], child.range[1]);
+						var rightHand = buf.substring(child.right.range[0], child.right.range[1])
+						functionConstraints[funcName].constraints.push( 
+							{
+								ident: child.left.name,
+								value: rightHand
+							}
+						);
+						// console.log(functionConstraints[funcName].constraints);
+					}
+				}
+				if( child.type === 'BinaryExpression' && child.operator == "==")
+				{
+					// console.log(child);
+					if( child.left.type == 'Identifier')
 					{
 						// get expression from original source code:
 						//var expression = buf.substring(child.range[0], child.range[1]);
@@ -270,9 +307,23 @@ function constraints(filePath)
 						}
 					}
 				}
-
-				
-
+				if( child.type == "LogicalExpression" && child.operator=='||')
+				{
+					if(child.left.type=='UnaryExpression'){
+						functionConstraints[funcName].constraints.push(
+							{
+								ident: child.left.argument.name,
+								value: true,
+							}
+						) 
+						functionConstraints[funcName].constraints.push(
+							{
+								ident: child.left.argument.name,
+								value: false,
+							}
+						) 
+					}
+				}
 			});
 
 			console.log( functionConstraints[funcName]);
