@@ -83,31 +83,31 @@ function generateTestCases()
 		var pathExists      = _.some(constraints, {mocking: 'fileExists' });
 		var buf= _.some(constraints,{ident:'buf'});
 		//Test 3,4,5
-		var options = _.some(constraints,{ident:options});
+		var options = _.some(constraints,{ident:'options'});
 		var region= _.some(constraints,{ident:'phoneNumber'});
 		var formatString=_.some(constraints,{ident:'formatString'});
-		console.log();console.log();console.log();console.log();console.log();
+		// console.log(formatString);
+		
+		
+		
 		for( var c = 0; c < constraints.length; c++ )
 		{
 			var constraint = constraints[c];
-			
-			console.log(constraint);
 			if( params.hasOwnProperty( constraint.ident ) )
 			{
 				params[constraint.ident] = constraint.value;
 			}
-			console.log("params=")
-			console.log(params);
 		}
 		
 		
 		// Prepare function arguments.
 
 		var args = Object.keys(params).map( function(k) {return params[k]; }).join(",");
-		console.log("Args=")
-		console.log(args);
 		if(qT||pT){
-			
+			content+=generateTestOne(pT,qT,funcName,args);
+			content+=generateTestOne(pT,!qT,funcName,args);
+			content+=generateTestOne(!pT,qT,funcName,args);
+			content+=generateTestOne(!pT,!qT,funcName,args);
 		}
 		if( pathExists || fileWithContent )
 		{
@@ -118,6 +118,17 @@ function generateTestCases()
 			content += generateMockFsTestCases(pathExists,!fileWithContent,!buf,funcName, args);
 			content += generateMockFsTestCases(!pathExists,fileWithContent,buf,funcName, args);
 		}
+		if(options){
+			content+=generateTestFour(options,funcName,args);
+			content+=generateTestFour(!options,funcName,args);
+		}
+		if(region){
+			content+=generateTestFive(region,funcName,args);
+			content+=generateTestFive(!region,funcName,args);
+		}
+		else{
+			content += "subject.{0}({1});\n".format(funcName, args );
+		}
 
 	}
 
@@ -125,8 +136,48 @@ function generateTestCases()
 	fs.writeFileSync('test.js', content, "utf8");
 
 }
-function generateTestOne(undefine,ltzeros){};
-
+function generateTestOne(pT,qT,funcName,args){
+	var testCase="";
+	var newArgs=args.split(',');
+	if(pT){
+		var number=parseInt(newArgs[0])-Math.random()*10;
+		newArgs[0]=number.toString();
+	}
+	if(qT){
+		if(newArgs[1]=="undefined"){
+			newArgs[1]=Math.random()*10;
+		}
+	}
+	testCase+="subject.{0}({1});\n".format(funcName, newArgs);
+	return testCase;
+};
+function generateTestFour(options,funcName,args){
+	var testCase="";
+	var newArgs=args.split(',');
+	
+	var number="'"+faker.phone.phoneNumberFormat().toString()+"'";
+	var numberFormat="'"+faker.phone.phoneFormats().toString()+"'";
+	newArgs[0]=number;
+	newArgs[1]=numberFormat;
+	if(!options){
+		newArgs[2]="false";
+	}
+	testCase+="subject.{0}({1});\n".format(funcName, newArgs);
+	return testCase;
+};
+function generateTestFive(region,funcName,args){
+	var testCase="";
+	var newArgs=args.split(',');
+	newArgs[0]=newArgs[0].substring(1,4);
+	var number=faker.phone.phoneNumberFormat().toString();
+	if(region){
+		number=newArgs[0]+number.substring(3,12);
+	}
+	number="'"+number+"'";
+	newArgs[0]=number;
+	testCase+="subject.{0}({1});\n".format(funcName, newArgs);
+	return testCase;
+};
 function generateMockFsTestCases (pathExists,fileWithContent,buf,funcName,args) 
 {
 	var testCase = "";
@@ -209,13 +260,7 @@ function constraints(filePath)
 						functionConstraints[funcName].constraints.push(
 							{
 								ident: 'phoneNumber',
-								value: faker.phone.phoneNumberFormat(),
-							}
-						);
-						functionConstraints[funcName].constraints.push(
-							{
-								ident: 'phoneNumber',
-								value: "212"+faker.phone.phoneNumberFormat().substring(3,12),
+								value: rightHand,
 							}
 						);
 					}
@@ -287,44 +332,12 @@ function constraints(filePath)
 				}
 				if( child.type == "LogicalExpression" && child.operator=='||')
 				{
-					if(child.left.type=='UnaryExpression'){
-						functionConstraints[funcName].constraints.push(
-							{
-								ident: 'phoneNumber',
-								value: faker.phone.phoneNumberFormat()
-							}
-						)  
-						functionConstraints[funcName].constraints.push(
-							{
-								ident: 'formatString',
-								value: faker.phone.phoneFormats()
-							}
-						) 
-						functionConstraints[funcName].constraints.push(
-							{
-								ident: child.left.argument.name,
-								value: true,
-							}
-						) 
-						functionConstraints[funcName].constraints.push(
-							{
-								ident: child.left.argument.name,
-								value: false,
-							}
-						) 
-					}
 					if(child.right.type=='UnaryExpression'){
 						if(child.right.argument.type=='MemberExpression'){
 							functionConstraints[funcName].constraints.push(
 								{
 									ident: child.right.argument.object.name,
-									value: {normalize: true}
-								}
-							)
-							functionConstraints[funcName].constraints.push(
-								{
-									ident: child.right.argument.object.name,
-									value: {normalize: false}
+									value: '{normalize: true}'
 								}
 							)
 						}
