@@ -75,73 +75,49 @@ function generateTestCases()
 		
 		
 		//Test1
-		var undefine = _.some(constraints,{value:'undefined'});
-		var zeros= _.some(constraints,{value:'0'});
+		var pT = _.some(constraints,{ident:'p'});
+		var qT= _.some(constraints,{ident:'q'});
 		
 		//Test2
 		var fileWithContent = _.some(constraints, {mocking: 'fileWithContent' });
 		var pathExists      = _.some(constraints, {mocking: 'fileExists' });
-		var zero2= _.some(constraints,{value:'0'});
-		//Test4
-		var trueStat = _.some(constraints,{value:true});
-		var falseStat = _.some(constraints,{value:false});
-		//Test5
-		var region= _.some(constraints,{value:'202'});
+		var buf= _.some(constraints,{ident:'buf'});
+		//Test 3,4,5
+		var options = _.some(constraints,{ident:options});
+		var region= _.some(constraints,{ident:'phoneNumber'});
+		var formatString=_.some(constraints,{ident:'formatString'});
+		console.log();console.log();console.log();console.log();console.log();
 		for( var c = 0; c < constraints.length; c++ )
 		{
 			var constraint = constraints[c];
+			
+			console.log(constraint);
 			if( params.hasOwnProperty( constraint.ident ) )
 			{
 				params[constraint.ident] = constraint.value;
 			}
+			console.log("params=")
+			console.log(params);
 		}
-
+		
+		
 		// Prepare function arguments.
 
 		var args = Object.keys(params).map( function(k) {return params[k]; }).join(",");
-		console.log(constraints);
-		if( pathExists || fileWithContent )
-		{
-			content += generateMockFsTestCases(pathExists,fileWithContent,zero2,funcName, args);
-			// Bonus...generate constraint variations test cases....
-			content += generateMockFsTestCases(!pathExists,!fileWithContent,zero2,funcName, args);
-			content += generateMockFsTestCases(pathExists,!fileWithContent,zero2,funcName, args);
-			content += generateMockFsTestCases(pathExists,!fileWithContent,!zero2,funcName, args);
-			content += generateMockFsTestCases(!pathExists,fileWithContent,zero2,funcName, args);
-		}
-		else if(undefine||zeros){
-			content += "subject.{0}({1});\n".format(funcName, args);
-			content += "subject.{0}({1});\n".format(funcName, "'-1','1'");
-			content += "subject.{0}({1});\n".format(funcName, "'1','undefined'");
-			content += "subject.{0}({1});\n".format(funcName, "'1','1'");
-			content += "subject.{0}({1});\n".format(funcName, "'1','0'");
-		}
-		else if(trueStat || falseStat){
-			var number=faker.phone.phoneNumberFormat();
-			var formatNumber=faker.phone.phoneFormats();
-
-			content += "subject.{0}({1});\n".format(funcName, args );
-			//generate subject.format('587-444-5077','1-###-###-####',{normalize:true});
-			var options={
-				toString:function(){return "{normalize:true}";},
-			}
-			content += "subject.{0}({1});\n".format(funcName, "'"+number+"','"+formatNumber+"',"+options);
-			options['toString']=function(){return "{normalize:false}";};
-			content += "subject.{0}({1});\n".format(funcName, "'"+number+"','"+formatNumber+"',"+options);
-			content += "subject.{0}({1});\n".format(funcName, "'"+number+"','"+formatNumber+"',"+!options);
-		}
-		else if(!region){
-			var number=faker.phone.phoneNumberFormat();
-			content+= "subject.{0}({1});\n".format(funcName, "'212-323-221'");
-			content+="subject.{0}({1});\n".format(funcName, "'"+number+"'");
-		}
-		else
-		{
-			// Emit simple test case.
-			content += "subject.{0}({1});\n".format(funcName, args );
+		console.log("Args=")
+		console.log(args);
+		if(qT||pT){
 			
 		}
-		
+		if( pathExists || fileWithContent )
+		{
+			content += generateMockFsTestCases(pathExists,fileWithContent,buf,funcName, args);
+			// Bonus...generate constraint variations test cases....
+			content += generateMockFsTestCases(!pathExists,!fileWithContent,buf,funcName, args);
+			content += generateMockFsTestCases(pathExists,!fileWithContent,buf,funcName, args);
+			content += generateMockFsTestCases(pathExists,!fileWithContent,!buf,funcName, args);
+			content += generateMockFsTestCases(!pathExists,fileWithContent,buf,funcName, args);
+		}
 
 	}
 
@@ -149,8 +125,9 @@ function generateTestCases()
 	fs.writeFileSync('test.js', content, "utf8");
 
 }
+function generateTestOne(undefine,ltzeros){};
 
-function generateMockFsTestCases (pathExists,fileWithContent,zero2,funcName,args) 
+function generateMockFsTestCases (pathExists,fileWithContent,buf,funcName,args) 
 {
 	var testCase = "";
 	// Insert mock data based on constraints.
@@ -168,7 +145,7 @@ function generateMockFsTestCases (pathExists,fileWithContent,zero2,funcName,args
 	// 	subject.fileTest('path/fileExists','pathContent/file1');
 	// mock.restore();
 	
-	if( pathExists && !zero2){
+	if( pathExists && !buf){
 		for (var attrname in mockFileLibrary.fileWithContent) { mergedFS[attrname] = mockFileLibrary.fileWithContent[attrname]; }
 		mergedFS['pathContent']['file1']="";
 	}
@@ -195,7 +172,6 @@ function constraints(filePath)
 		{
 			var funcName = functionName(node);
 			console.log();
-			console.log();console.log();console.log();
 			console.log("Line : {0} Function: {1}".format(node.loc.start.line, funcName ));
 
 			var params = node.params.map(function(p) {return p.name});
@@ -232,8 +208,14 @@ function constraints(filePath)
 						var rightHand = buf.substring(child.right.range[0], child.right.range[1])
 						functionConstraints[funcName].constraints.push(
 							{
-								ident: child.left.name,
-								value: rightHand
+								ident: 'phoneNumber',
+								value: faker.phone.phoneNumberFormat(),
+							}
+						);
+						functionConstraints[funcName].constraints.push(
+							{
+								ident: 'phoneNumber',
+								value: "212"+faker.phone.phoneNumberFormat().substring(3,12),
 							}
 						);
 					}
@@ -308,6 +290,18 @@ function constraints(filePath)
 					if(child.left.type=='UnaryExpression'){
 						functionConstraints[funcName].constraints.push(
 							{
+								ident: 'phoneNumber',
+								value: faker.phone.phoneNumberFormat()
+							}
+						)  
+						functionConstraints[funcName].constraints.push(
+							{
+								ident: 'formatString',
+								value: faker.phone.phoneFormats()
+							}
+						) 
+						functionConstraints[funcName].constraints.push(
+							{
 								ident: child.left.argument.name,
 								value: true,
 							}
@@ -323,16 +317,16 @@ function constraints(filePath)
 						if(child.right.argument.type=='MemberExpression'){
 							functionConstraints[funcName].constraints.push(
 								{
-									ident: child.right.argument.object.name+'.'+child.right.argument.property.name,
-									value: false,
+									ident: child.right.argument.object.name,
+									value: {normalize: true}
 								}
-							) 
+							)
 							functionConstraints[funcName].constraints.push(
 								{
-									ident: child.right.argument.object.name+'.'+child.right.argument.property.name,
-									value: true,
+									ident: child.right.argument.object.name,
+									value: {normalize: false}
 								}
-							) 
+							)
 						}
 					}
 				}
