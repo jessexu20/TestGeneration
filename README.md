@@ -3,17 +3,23 @@
 
 <pre>
 =============================== Coverage summary ===============================
-Statements   : 100% ( 64/64 )
+Statements   : 100% ( 63/63 )
 Branches     : 100% ( 16/16 )
 Functions    : 100% ( 5/5 )
-Lines        : 100% ( 63/63 )
+Lines        : 100% ( 62/62 )
 ================================================================================
 </pre>
+
+####You can run the local version as follows:
+
+	node_modules/.bin/istanbul cover test.js
+	node_module\.bin\istanbul cover test.js (Windows)
 
 
 #### You can see a better visualization of the results here:
     
     open coverage/lcov-report/TestGeneration/subject.js.html
+	
 #### You will see
 
 <img src="testResult.png"/>
