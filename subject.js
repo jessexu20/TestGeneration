@@ -1,9 +1,8 @@
 var fs = require("fs");
-
 function inc(p, q){
-    if(q ==undefined) q =1;
+    if(q ==null) q =1;
 
-   if( p < 0 )
+   if( p < -10 )
    {
    	p = -p;
    }
