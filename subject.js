@@ -2,7 +2,7 @@ var fs = require("fs");
 function inc(p, q){
     if(q ==null) q =1;
 
-   if( p < 0 )
+   if( p < -100 )
    {
    	p = -p;
    }
